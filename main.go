@@ -57,7 +57,7 @@ func main() {
 
 	request := entity.Request{
 		ProviderAddress: provider.PublicAddress,
-		Value:           big.NewInt(5000),
+		Value:           big.NewInt(100),
 		Description:     "water",
 	}
 
@@ -68,6 +68,10 @@ func main() {
 	campaign.GetNumberOfRequests()
 
 	campaign.ApproveRequest(contributor, big.NewInt(0))
+
+	campaign.GetBalance()
+
+	campaign.FinalizeRequest(manager, big.NewInt(0))
 
 }
 

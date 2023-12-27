@@ -228,3 +228,31 @@ func (c *Campaign) ApproveRequest(contributor *account.Account, index *big.Int) 
 	fmt.Println("transaction hash ...")
 	fmt.Println(tx.Hash())
 }
+
+func (c *Campaign) FinalizeRequest(manager *account.Account, index *big.Int) {
+	nonce := manager.GetNonce()
+
+	gasPrice, err := c.client.SuggestGasPrice(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	auth, err := bind.NewKeyedTransactorWithChainID(manager.PrivateKey, c.chainID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0)      // in wei
+	auth.GasLimit = uint64(6721975) // in units 6721975
+	auth.GasPrice = gasPrice
+
+	tx, err := c.Instance.FinalizeRequest(auth, index)
+	if err != nil {
+		fmt.Println("FinalizeRequest")
+		fmt.Println(err.Error())
+		log.Fatal(err)
+	}
+
+	fmt.Println("transaction hash ...")
+	fmt.Println(tx.Hash())
+}
