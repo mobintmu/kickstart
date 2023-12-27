@@ -65,6 +65,10 @@ func main() {
 	campaign.AddRequest(request, manager)
 	PrintBalances(manager, provider, contributor)
 
+	campaign.GetNumberOfRequests()
+
+	campaign.ApproveRequest(contributor, big.NewInt(0))
+
 }
 
 func PrintBalances(manager *account.Account, provider *account.Account, contributor *account.Account) {
