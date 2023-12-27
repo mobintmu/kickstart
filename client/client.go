@@ -23,5 +23,6 @@ func NewClient(address string) *Client {
 		Client: client,
 	}
 
+
 	return newClient
 }

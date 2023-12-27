@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"kickstart/client"
 	"kickstart/helper"
+	"kickstart/service/account"
 
 	"github.com/joho/godotenv"
 )
@@ -15,6 +17,24 @@ func main() {
 	address := helper.GetEnvVariable("ADDRESS")
 
 	client := client.NewClient(address)
+	defer client.Client.Close()
 
-	_ = client
+	manager := account.NewAccount(
+		helper.GetEnvVariable("MANAGER_ADDRESS"),
+		helper.GetEnvVariable("MANAGER_PRIVATE_ADDRESS"),
+		client)
+	fmt.Println("balance manager :", manager.GetBalance())
+
+	provider := account.NewAccount(
+		helper.GetEnvVariable("PROVIDER_ADDRESS"),
+		helper.GetEnvVariable("PROVIDER_PRIVATE_ADDRESS"),
+		client)
+	fmt.Println("balance provider :", provider.GetBalance())
+
+	contributor := account.NewAccount(
+		helper.GetEnvVariable("CONTRIBUTOR_ADDRESS"),
+		helper.GetEnvVariable("CONTRIBUTOR_PRIVATE_ADDRESS"),
+		client)
+	fmt.Println("contributor manager :", contributor.GetBalance())
+
 }
