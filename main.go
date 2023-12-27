@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"kickstart/client"
+	"kickstart/entity"
 	"kickstart/helper"
 	"kickstart/service/account"
 	"kickstart/service/campaign"
@@ -51,6 +52,18 @@ func main() {
 	PrintBalances(manager, provider, contributor)
 
 	campaign.IsPaid(contributor)
+
+	campaign.GetBalance()
+
+	request := entity.Request{
+		ProviderAddress: provider.PublicAddress,
+		Value:           big.NewInt(5000),
+		Description:     "water",
+	}
+
+	fmt.Println("create request ...")
+	campaign.AddRequest(request, manager)
+	PrintBalances(manager, provider, contributor)
 
 }
 

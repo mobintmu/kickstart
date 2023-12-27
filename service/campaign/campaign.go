@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"kickstart/contracts"
+	"kickstart/entity"
 	"kickstart/service/account"
 	"log"
 	"math/big"
@@ -117,7 +118,7 @@ func (c *Campaign) GetBalance() *big.Int {
 	return result
 }
 
-func (c *Campaign) IsPaid(contributor *account.Account) {
+func (c *Campaign) IsPaid(contributor *account.Account) bool {
 
 	result, err := c.Instance.IsPaid(&bind.CallOpts{
 		From:    contributor.PublicAddress,
@@ -130,6 +131,7 @@ func (c *Campaign) IsPaid(contributor *account.Account) {
 
 	fmt.Println(result)
 
+	return result
 }
 
 func (c *Campaign) GetContributor(contributor *account.Account) bool {
@@ -155,4 +157,33 @@ func (c *Campaign) GetContributor(contributor *account.Account) bool {
 	fmt.Println(result)
 
 	return result
+}
+
+func (c *Campaign) AddRequest(request entity.Request, manager *account.Account) {
+	nonce := manager.GetNonce()
+
+	gasPrice, err := c.client.SuggestGasPrice(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	auth, err := bind.NewKeyedTransactorWithChainID(manager.PrivateKey, c.chainID)
+	if err != nil {
+		log.Fatal(err)
+	}
+	auth.Nonce = big.NewInt(int64(nonce))
+	auth.Value = big.NewInt(0)      // in wei
+	auth.GasLimit = uint64(6721975) // in units 6721975
+	auth.GasPrice = gasPrice
+
+	tx, err := c.Instance.AddRequest(auth, request.Description, request.Value, request.ProviderAddress)
+	if err != nil {
+		fmt.Println("CreateRequest")
+		fmt.Println(err.Error())
+		log.Fatal(err)
+	}
+
+	fmt.Println("transaction hash ...")
+	fmt.Println(tx.Hash())
+
 }
