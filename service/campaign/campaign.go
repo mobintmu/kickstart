@@ -15,7 +15,7 @@ import (
 )
 
 type Campaign struct {
-	instance  *contracts.Campaign
+	Instance  *contracts.Campaign
 	txAddress common.Address
 	tx        *types.Transaction
 	Min       *big.Int
@@ -45,27 +45,28 @@ func (c *Campaign) Deploy(manager *account.Account) {
 		log.Fatal(err)
 	}
 
-	// chainID, err := c.client.ChainID(context.Background())
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
+	chainID, err := c.client.ChainID(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	auth, err := bind.NewKeyedTransactorWithChainID(manager.PrivateKey, c.chainID)
+	auth, err := bind.NewKeyedTransactorWithChainID(manager.PrivateKey, chainID)
 	if err != nil {
 		fmt.Println(err)
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)     // in wei
-	auth.GasLimit = uint64(300000) // in units
+	auth.Value = big.NewInt(0)      // in wei
+	auth.GasLimit = uint64(6721975) // in units
 	auth.GasPrice = gasPrice
 
 	txAddress, tx, instance, err := contracts.DeployCampaign(auth, c.client, c.Min)
 	if err != nil {
 		fmt.Println("DeployLottery")
-		log.Fatal(err.Error())
+		fmt.Println(err.Error())
+		log.Fatal("stop")
 	}
 
-	c.instance = instance
+	c.Instance = instance
 	c.txAddress = txAddress
 	c.tx = tx
 
@@ -83,22 +84,19 @@ func (c *Campaign) Contribute(contributor *account.Account) {
 		log.Fatal(err)
 	}
 
-	// chainID, err := c.client.ChainID(context.Background())
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
 	auth, err := bind.NewKeyedTransactorWithChainID(contributor.PrivateKey, c.chainID)
 	if err != nil {
 		log.Fatal(err)
 	}
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = c.Min              // in wei
-	auth.GasLimit = uint64(3000000) // in units
+	auth.GasLimit = uint64(6721975) // in units 6721975
 	auth.GasPrice = gasPrice
 
-	tx, err := c.instance.Contribute(auth)
+	tx, err := c.Instance.Contribute(auth)
 	if err != nil {
+		fmt.Println("Contribute")
+		fmt.Println(err.Error())
 		log.Fatal(err)
 	}
 
@@ -107,44 +105,43 @@ func (c *Campaign) Contribute(contributor *account.Account) {
 
 }
 
-func (c *Campaign) IsPaid(contributor *account.Account) bool {
-
-	result, err := c.instance.CampaignCaller.IsPaid(&bind.CallOpts{
-		Pending:     false,
-		From:        contributor.PublicAddress,
-		BlockNumber: &big.Int{},
-		BlockHash:   [32]byte{},
-		Context:     nil,
-	})
+func (c *Campaign) GetBalance() *big.Int {
+	result, err := c.Instance.GetBalance(nil)
 	if err != nil {
 		fmt.Println("IsPaid")
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-
-	result, err = c.instance.IsPaid(&bind.CallOpts{
-		Pending:     false,
-		From:        contributor.PublicAddress,
-		BlockNumber: &big.Int{},
-		BlockHash:   [32]byte{},
-		Context:     nil,
-	})
 
 	fmt.Println(result)
 
 	return result
+}
+
+func (c *Campaign) IsPaid(contributor *account.Account) {
+
+	result, err := c.Instance.IsPaid(&bind.CallOpts{
+		From:    contributor.PublicAddress,
+		Context: context.Background(),
+	})
+	if err != nil {
+		fmt.Println("IsPaid")
+		fmt.Println(err)
+	}
+
+	fmt.Println(result)
 
 }
 
 func (c *Campaign) GetContributor(contributor *account.Account) bool {
 
-	result, err := c.instance.Approvers(nil, contributor.PublicAddress)
+	result, err := c.Instance.Approvers(nil, contributor.PublicAddress)
 	if err != nil {
 		fmt.Println("GetContributor")
 		log.Fatal(err)
 	}
 	fmt.Println(result)
 
-	result, err = c.instance.Approvers(&bind.CallOpts{
+	result, err = c.Instance.Approvers(&bind.CallOpts{
 		Pending:     false,
 		From:        contributor.PublicAddress,
 		BlockNumber: &big.Int{},

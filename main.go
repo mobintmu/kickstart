@@ -50,7 +50,7 @@ func main() {
 	campaign.Contribute(contributor)
 	PrintBalances(manager, provider, contributor)
 
-	campaign.GetContributor(contributor)
+	campaign.IsPaid(contributor)
 
 }
 
