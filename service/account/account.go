@@ -5,22 +5,18 @@ import (
 	"crypto/ecdsa"
 	"fmt"
 	"kickstart/client"
-	"kickstart/contracts"
 	"log"
 	"math/big"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 type Account struct {
 	PublicAddress common.Address
-	privateKey    *ecdsa.PrivateKey
-	Name          string
+	PrivateKey    *ecdsa.PrivateKey
 	client        *ethclient.Client
 }
 
@@ -37,7 +33,7 @@ func NewAccount(publicAddress string,
 	return &Account{
 		PublicAddress: common.HexToAddress(publicAddress),
 		client:        client.Client,
-		privateKey:    privateKey,
+		PrivateKey:    privateKey,
 	}
 }
 
@@ -64,38 +60,27 @@ func (a *Account) GetNonce() uint64 {
 	return nonce
 
 }
+func (a *Account) GetHeader() *big.Int {
 
-func (a *Account) Deploy(min *big.Int) (common.Address, *types.Transaction) {
-
-	nonce := a.GetNonce()
-
-	gasPrice, err := a.client.SuggestGasPrice(context.Background())
+	header, err := a.client.HeaderByNumber(context.Background(), nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	chainID, err := a.client.ChainID(context.Background())
+	fmt.Println(header.Number.String()) // 5671744
+
+	return header.Number
+}
+
+func (a *Account) GetDataFromBlock(blockNumber *big.Int) {
+	block, err := a.client.BlockByNumber(context.Background(), blockNumber)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	auth, err := bind.NewKeyedTransactorWithChainID(a.privateKey, chainID)
-	if err != nil {
-		fmt.Println(err)
-	}
-	auth.Nonce = big.NewInt(int64(nonce))
-	auth.Value = big.NewInt(0)     // in wei
-	auth.GasLimit = uint64(300000) // in units
-	auth.GasPrice = gasPrice
-
-	txAddress, tx, _, err := contracts.DeployCampaign(auth, a.client, min)
-	if err != nil {
-		fmt.Println("DeployLottery")
-		log.Fatal(err.Error())
-	}
-
-	fmt.Println(txAddress.Hex())
-	fmt.Println(tx.Hash().Hex())
-	return txAddress, tx
-
+	fmt.Println("block.Number().Uint64() ", block.Number().Uint64())        // 5671744
+	fmt.Println("block.Time()", block.Time())                               // 1527211625
+	fmt.Println("block.Difficulty().Uint64()", block.Difficulty().Uint64()) // 3217000136609065
+	fmt.Println("block.Hash().Hex()", block.Hash().Hex())                   // 0x9e8751ebb5069389b855bba72d94902cc385042661498a415979b7b6ee9ba4b9
+	fmt.Println("len(block.Transactions())", len(block.Transactions()))     // 144
 }

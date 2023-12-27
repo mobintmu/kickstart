@@ -5,6 +5,7 @@ import (
 	"kickstart/client"
 	"kickstart/helper"
 	"kickstart/service/account"
+	"kickstart/service/campaign"
 	"math/big"
 
 	"github.com/joho/godotenv"
@@ -20,28 +21,42 @@ func main() {
 	client := client.NewClient(address)
 	defer client.Client.Close()
 
+	campaign := campaign.NewCampaign(big.NewInt(1000), client.Client)
+
 	manager := account.NewAccount(
 		helper.GetEnvVariable("MANAGER_ADDRESS"),
 		helper.GetEnvVariable("MANAGER_PRIVATE_ADDRESS"),
 		client)
-	fmt.Println("balance manager :", manager.GetBalance())
 
 	provider := account.NewAccount(
 		helper.GetEnvVariable("PROVIDER_ADDRESS"),
 		helper.GetEnvVariable("PROVIDER_PRIVATE_ADDRESS"),
 		client)
-	fmt.Println("balance provider :", provider.GetBalance())
 
 	contributor := account.NewAccount(
 		helper.GetEnvVariable("CONTRIBUTOR_ADDRESS"),
 		helper.GetEnvVariable("CONTRIBUTOR_PRIVATE_ADDRESS"),
 		client)
-	fmt.Println("contributor manager :", contributor.GetBalance())
 
-	fmt.Println("nonce manager : ", manager.GetNonce())
+	manager.GetDataFromBlock(manager.GetHeader())
+
+	PrintBalances(manager, provider, contributor)
 
 	fmt.Println("deploying contract  ... ")
-	manager.Deploy(big.NewInt(300))
+	campaign.Deploy(manager)
+	PrintBalances(manager, provider, contributor)
+
+	fmt.Println("contribute ...")
+	campaign.Contribute(contributor)
+	PrintBalances(manager, provider, contributor)
+
+}
+
+func PrintBalances(manager *account.Account, provider *account.Account, contributor *account.Account) {
+	fmt.Println(">>>>>>>>>>>>>>>>>>>>>>Balance>>>>>>>>>>>>>>>>")
 	fmt.Println("balance manager :", manager.GetBalance())
+	fmt.Println("balance provider :", provider.GetBalance())
+	fmt.Println("balance contributor :", contributor.GetBalance())
+	fmt.Println("<<<<<<<<<<<<<<<<<<<<<<Balance<<<<<<<<<<<<<<<<<")
 
 }

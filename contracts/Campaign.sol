@@ -29,7 +29,7 @@ contract Campaign {
         minimumContribution = min;
     }
 
-    function contibute() public payable {
+    function contribute() public payable {
         require(
             msg.value >= minimumContribution,
             "minimum contribute is required."
