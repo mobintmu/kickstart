@@ -50,6 +50,8 @@ func main() {
 	campaign.Contribute(contributor)
 	PrintBalances(manager, provider, contributor)
 
+	campaign.GetContributor(contributor)
+
 }
 
 func PrintBalances(manager *account.Account, provider *account.Account, contributor *account.Account) {

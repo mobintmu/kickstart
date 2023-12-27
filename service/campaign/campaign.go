@@ -20,12 +20,20 @@ type Campaign struct {
 	tx        *types.Transaction
 	Min       *big.Int
 	client    *ethclient.Client
+	chainID   *big.Int
 }
 
 func NewCampaign(min *big.Int, client *ethclient.Client) *Campaign {
+
+	chainID, err := client.ChainID(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	return &Campaign{
-		Min:    min,
-		client: client,
+		Min:     min,
+		client:  client,
+		chainID: chainID,
 	}
 }
 
@@ -37,12 +45,12 @@ func (c *Campaign) Deploy(manager *account.Account) {
 		log.Fatal(err)
 	}
 
-	chainID, err := c.client.ChainID(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
+	// chainID, err := c.client.ChainID(context.Background())
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	auth, err := bind.NewKeyedTransactorWithChainID(manager.PrivateKey, chainID)
+	auth, err := bind.NewKeyedTransactorWithChainID(manager.PrivateKey, c.chainID)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -75,12 +83,12 @@ func (c *Campaign) Contribute(contributor *account.Account) {
 		log.Fatal(err)
 	}
 
-	chainID, err := c.client.ChainID(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
+	// chainID, err := c.client.ChainID(context.Background())
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 
-	auth, err := bind.NewKeyedTransactorWithChainID(contributor.PrivateKey, chainID)
+	auth, err := bind.NewKeyedTransactorWithChainID(contributor.PrivateKey, c.chainID)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -97,4 +105,57 @@ func (c *Campaign) Contribute(contributor *account.Account) {
 	fmt.Println("transaction hash ...")
 	fmt.Println(tx.Hash())
 
+}
+
+func (c *Campaign) IsPaid(contributor *account.Account) bool {
+
+	result, err := c.instance.CampaignCaller.IsPaid(&bind.CallOpts{
+		Pending:     false,
+		From:        contributor.PublicAddress,
+		BlockNumber: &big.Int{},
+		BlockHash:   [32]byte{},
+		Context:     nil,
+	})
+	if err != nil {
+		fmt.Println("IsPaid")
+		log.Fatal(err)
+	}
+
+	result, err = c.instance.IsPaid(&bind.CallOpts{
+		Pending:     false,
+		From:        contributor.PublicAddress,
+		BlockNumber: &big.Int{},
+		BlockHash:   [32]byte{},
+		Context:     nil,
+	})
+
+	fmt.Println(result)
+
+	return result
+
+}
+
+func (c *Campaign) GetContributor(contributor *account.Account) bool {
+
+	result, err := c.instance.Approvers(nil, contributor.PublicAddress)
+	if err != nil {
+		fmt.Println("GetContributor")
+		log.Fatal(err)
+	}
+	fmt.Println(result)
+
+	result, err = c.instance.Approvers(&bind.CallOpts{
+		Pending:     false,
+		From:        contributor.PublicAddress,
+		BlockNumber: &big.Int{},
+		BlockHash:   [32]byte{},
+		Context:     nil,
+	}, contributor.PublicAddress)
+	if err != nil {
+		fmt.Println("GetContributor")
+		log.Fatal(err)
+	}
+	fmt.Println(result)
+
+	return result
 }

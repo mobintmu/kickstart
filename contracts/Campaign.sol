@@ -40,7 +40,7 @@ contract Campaign {
 
     }
 
-    function isPaied() public view returns (bool) {
+    function isPaid() public view returns (bool) {
         return (approvers[msg.sender]);
     }
 
