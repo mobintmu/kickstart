@@ -11,12 +11,17 @@ type Client struct {
 	Client *ethclient.Client
 }
 
-func (c *Client) NewClient(address string) {
+func NewClient(address string) *Client {
 
 	client, err := ethclient.Dial(address)
 	if err != nil {
 		log.Fatal(err)
 	}
 	fmt.Println("connect to network ...")
-	c.Client = client
+
+	newClient := &Client{
+		Client: client,
+	}
+
+	return newClient
 }

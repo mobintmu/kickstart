@@ -12,10 +12,9 @@ func main() {
 	// Load the .env file in the current directory
 	godotenv.Load()
 
-	client := client.Client{}
-
 	address := helper.GetEnvVariable("ADDRESS")
 
-	client.NewClient(address)
+	client := client.NewClient(address)
 
+	_ = client
 }
