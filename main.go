@@ -5,6 +5,7 @@ import (
 	"kickstart/client"
 	"kickstart/helper"
 	"kickstart/service/account"
+	"math/big"
 
 	"github.com/joho/godotenv"
 )
@@ -36,5 +37,11 @@ func main() {
 		helper.GetEnvVariable("CONTRIBUTOR_PRIVATE_ADDRESS"),
 		client)
 	fmt.Println("contributor manager :", contributor.GetBalance())
+
+	fmt.Println("nonce manager : ", manager.GetNonce())
+
+	fmt.Println("deploying contract  ... ")
+	manager.Deploy(big.NewInt(300))
+	fmt.Println("balance manager :", manager.GetBalance())
 
 }

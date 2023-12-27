@@ -4,7 +4,7 @@ pragma solidity >=0.5.0 <0.9.0;
 
 // contract code will go here
 
-contract Campaing {
+contract Campaign {
 
     address public manager;
     uint256 public minimumContribution;
